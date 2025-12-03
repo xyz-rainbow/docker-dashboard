@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  sftp:
+    build: .
+    container_name: sftp_server
+    ports:
+      - "2222:22" # Map host port 2222 to container port 22
+    environment:
+      - SFTP_USER=myuser
+      - SFTP_PASSWORD=mypassword
+      - SFTP_UID=1000
+    volumes:
+      # Map a local folder to the user's upload directory in the container
+      # CHANGE './data' to the absolute path of your Documents folder if desired
+      # Example: - /c/Users/YourName/Documents/SFTP_Folder:/home/myuser/upload
+      - ./data:/home/myuser/upload
+    restart: unless-stopped

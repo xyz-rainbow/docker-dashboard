@@ -1,0 +1,9 @@
+# Data directory (don't commit the actual files)
+data/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Docker
+.env
