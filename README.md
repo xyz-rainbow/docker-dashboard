@@ -1,75 +1,76 @@
 # Servidor SFTP/SSH en Docker
 
-Este proyecto te permite levantar un servidor SFTP/SSH seguro dentro de un contenedor Docker, mapeando una carpeta local de tu sistema (como "Documents") para acceder a ella remotamente.
+Este proyecto te permite levantar un servidor SFTP/SSH seguro dentro de un contenedor Docker, mapeando una carpeta local de tu sistema para acceder a ella remotamente.
 
-## 🚀 Inicio Rápido
+## 🚀 Inicio Rápido (Nuevo Script de Gestión)
 
-### 1. Configuración
-Si quieres cambiar el usuario o contraseña, edita el archivo `docker-compose.yml`:
-```yaml
-environment:
-  - SFTP_USER=miusuario
-  - SFTP_PASSWORD=micontrasena
-```
+Hemos incluido un script interactivo para facilitar la configuración y el uso.
 
-### 2. Mapear tu carpeta
-Por defecto, este proyecto crea una carpeta `data` en el directorio actual.
-Para mapear una carpeta de tus Documentos, edita la sección `volumes` en `docker-compose.yml`:
+### 1. Ejecutar el Asistente
+En tu terminal (Git Bash, WSL o Linux), ejecuta:
 
-**Windows (Docker Desktop):**
-```yaml
-volumes:
-  - /c/Users/TuUsuario/Documents/MiCarpetaSFTP:/home/miusuario/upload
-```
-*Nota: Asegúrate de que la carpeta local exista.*
-
-### 3. Ejecutar
-Abre una terminal en esta carpeta y ejecuta:
 ```bash
-docker-compose up -d --build
+./manage.sh
 ```
 
-### 4. Conectar
-Puedes conectar usando cualquier cliente SFTP (FileZilla, WinSCP) o terminal:
-- **Host**: `localhost`
-- **Puerto**: `2222`
-- **Usuario**: `miusuario` (o el que hayas configurado)
-- **Contraseña**: `micontrasena`
+Este script te permitirá:
+*   **Iniciar/Detener** el servidor.
+*   **Configurar** puertos, usuario, contraseña y carpeta compartida.
+*   **Ver información** de conexión (IP, comandos SSH).
+*   **Abrir una terminal SSH** directamente en el contenedor.
+*   **Activar Cloudflare Tunnel** para acceso público seguro.
 
-Comando de terminal:
+### 2. Configuración Manual (Opcional)
+Si prefieres no usar el script, puedes configurar todo mediante variables de entorno en un archivo `.env`.
+
+1.  Copia el ejemplo: `cp .env.example .env`
+2.  Edita `.env` con tus preferencias:
+
 ```bash
-sftp -P 2222 miusuario@localhost
+# Ejemplo de .env
+SFTP_USER=miusuario
+SFTP_PASSWORD=micontrasena
+SFTP_PORT=2222
+# Ruta absoluta a tu carpeta local
+HOST_UPLOAD_DIR=/c/Users/TuUsuario/Documents/MiCarpeta
+# Opcional: Token de Cloudflare
+CLOUDFLARE_TOKEN=
 ```
 
----
+3.  Ejecuta: `docker-compose up -d`
 
-## 🧠 ¿Cómo funciona? (Explicación Detallada)
+## 📂 Mapeo de Carpetas (Volúmenes)
 
-Aquí explico los conceptos clave que hacen que esto funcione, respondiendo a tu pregunta original.
+El servidor necesita saber qué carpeta de tu computadora quieres compartir.
 
-### 1. El Contenedor (`Dockerfile`)
-Creamos una "mini computadora" virtual basada en Ubuntu.
-- Instalamos `openssh-server`: El programa que maneja las conexiones SSH y SFTP.
-- Configuramos SSH: Habilitamos el subsistema SFTP y permitimos acceso con contraseña.
+*   **Windows (Docker Desktop)**:
+    *   Formato: `/c/Users/TuUsuario/Documents/...`
+    *   Ejemplo: `/c/Users/Juan/Documents/Proyectos`
 
-### 2. El Script de Inicio (`entrypoint.sh`)
-Docker es efímero (se reinicia "limpio"). Este script se ejecuta cada vez que arranca el contenedor:
-- Crea el usuario que definiste en las variables de entorno.
-- Asigna los permisos correctos a la carpeta interna.
-- Inicia el servidor SSH.
+*   **Linux**:
+    *   Formato: `/home/tuusuario/Documents/...`
+    *   Ejemplo: `/home/juan/Documents/Proyectos`
 
-### 3. La Conexión (`docker-compose.yml`)
-Aquí es donde ocurre la magia de la integración con tu sistema:
+Puedes configurar esto fácilmente usando la opción "Configurar" del script `manage.sh`.
 
-- **Puertos (`2222:22`)**:
-  - El contenedor escucha en el puerto `22` (estándar SSH).
-  - Tu computadora (host) redirige el tráfico de su puerto `2222` hacia el `22` del contenedor.
-  - Usamos `2222` para no chocar con el SSH de tu propio sistema o de Windows.
+## ☁️ Acceso Remoto con Cloudflare Tunnel
 
-- **Volúmenes (`./data:/home/...`)**:
-  - Esto es el "puente" entre tu disco duro y el contenedor.
-  - Cualquier archivo que pongas en tu carpeta local aparecerá instantáneamente dentro del contenedor en `/home/miusuario/upload`.
-  - Y viceversa: lo que subas por SFTP aparecerá en tu carpeta de Documentos.
+Si deseas acceder a tu servidor SFTP desde cualquier lugar sin abrir puertos en tu router:
 
-## 📋 Requisitos
-- Docker y Docker Compose instalados.
+1.  Obtén un token de Cloudflare Tunnel (Zero Trust Dashboard).
+2.  Ejecuta `./manage.sh` y selecciona "Configurar".
+3.  Introduce tu token cuando se te pida.
+4.  Reinicia el servidor con la opción 1.
+
+El túnel se iniciará automáticamente junto con el servidor SFTP.
+
+## 🔧 Comandos Útiles
+
+*   **Conectar por SSH (Local)**:
+    ```bash
+    ssh -p 2222 miusuario@localhost
+    ```
+*   **Ver logs**:
+    ```bash
+    docker-compose logs -f
+    ```

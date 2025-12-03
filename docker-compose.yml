@@ -5,14 +5,23 @@ services:
     build: .
     container_name: sftp_server
     ports:
-      - "2222:22" # Map host port 2222 to container port 22
+      - "${SFTP_PORT:-2222}:22"
     environment:
-      - SFTP_USER=myuser
-      - SFTP_PASSWORD=mypassword
-      - SFTP_UID=1000
+      - SFTP_USER=${SFTP_USER:-sftpuser}
+      - SFTP_PASSWORD=${SFTP_PASSWORD:-password123}
+      - SFTP_UID=${SFTP_UID:-1000}
     volumes:
-      # Map a local folder to the user's upload directory in the container
-      # CHANGE './data' to the absolute path of your Documents folder if desired
-      # Example: - /c/Users/YourName/Documents/SFTP_Folder:/home/myuser/upload
-      - ./data:/home/myuser/upload
+      - ${HOST_UPLOAD_DIR:-./data}:/home/${SFTP_USER:-sftpuser}/upload
     restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: sftp_tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+    depends_on:
+      - sftp
+    profiles:
+      - tunnel
