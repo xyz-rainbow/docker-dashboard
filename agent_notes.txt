@@ -1,0 +1,12 @@
+# Agent Scratchpad - Nexus Panel
+Este archivo es para que yo (el Agente) deje notas, ideas o recordatorios para futuras sesiones.
+NO BORRAR NI SUBIR A GIT.
+
+## Estado Actual
+- Iniciando planificación de v2.0 (Dashboard).
+- Ramas creadas: v1-sftp-standalone, v2-dashboard.
+
+## Ideas / Pendientes
+- Investigar librerías de i18n ligeras para Next.js.
+- Diseño del sistema de auto-update: ¿Script bash en cron o servicio en Node?
+- Modularidad: ¿Plugins? ¿Arquitectura de microservicios o monolito modular? -> Monolito modular es mejor para instalación simple.
