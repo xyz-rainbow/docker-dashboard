@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import DeleteConfirmationModal from '@/components/dashboard/DeleteConfirmationModal';
 import SettingsModal from '@/components/dashboard/SettingsModal';
@@ -13,6 +14,9 @@ const generateMetric = (base: number, variance: number) =>
     Math.max(0, Math.min(100, base + (Math.random() - 0.5) * variance));
 
 export default function DashboardPage() {
+    const { data: session } = useSession();
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
     const t = useTranslations('Dashboard');
     const [activeTab, setActiveTab] = useState('containers');
 
@@ -143,7 +147,45 @@ export default function DashboardPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                             </button>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400" />
+
+                            {/* User Menu */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold hover:opacity-90 transition-opacity"
+                                >
+                                    {session?.user?.name?.[0]?.toUpperCase() || 'U'}
+                                </button>
+
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl border border-slate-700 shadow-xl py-1 z-50">
+                                        <div className="px-4 py-2 border-b border-slate-700">
+                                            <p className="text-white text-sm font-medium truncate">{session?.user?.name}</p>
+                                            <p className="text-slate-400 text-xs truncate">{session?.user?.email}</p>
+                                        </div>
+                                        <Link
+                                            href="/settings"
+                                            className="block px-4 py-2 text-slate-300 hover:bg-slate-700 hover:text-white text-sm"
+                                        >
+                                            Settings
+                                        </Link>
+                                        {(session?.user as any)?.role === 'admin' && (
+                                            <Link
+                                                href="/admin"
+                                                className="block px-4 py-2 text-purple-400 hover:bg-slate-700 hover:text-purple-300 text-sm"
+                                            >
+                                                Admin Panel
+                                            </Link>
+                                        )}
+                                        <button
+                                            onClick={() => signOut()}
+                                            className="w-full text-left px-4 py-2 text-red-400 hover:bg-slate-700 hover:text-red-300 text-sm"
+                                        >
+                                            Sign Out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
